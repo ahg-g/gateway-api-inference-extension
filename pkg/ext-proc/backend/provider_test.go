@@ -47,9 +47,6 @@ func TestProvider(t *testing.T) {
 	}{
 		{
 			name: "Init success",
-			datastore: &K8sDatastore{
-				pods: populateMap(pod1.Pod, pod2.Pod),
-			},
 			pmc: &FakePodMetricsClient{
 				Res: map[Pod]*PodMetrics{
 					pod1.Pod: pod1,
@@ -67,9 +64,6 @@ func TestProvider(t *testing.T) {
 				Res: map[Pod]*PodMetrics{
 					pod1.Pod: pod1,
 				},
-			},
-			datastore: &K8sDatastore{
-				pods: populateMap(pod1.Pod, pod2.Pod),
 			},
 			want: []*PodMetrics{
 				pod1,
@@ -89,7 +83,13 @@ func TestProvider(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			p := NewProvider(test.pmc, test.datastore)
+			p := NewProvider(test.pmc, nil, nil)
+			p.PodListerFunc = func() (map[string]string, error) {
+				return map[string]string{
+					pod1.Pod.Name: pod1.Pod.Address,
+					pod2.Pod.Name: pod2.Pod.Address,
+				}, nil
+			}
 			err := p.Init(time.Millisecond, time.Millisecond)
 			if test.initErr != (err != nil) {
 				t.Fatalf("Unexpected error, got: %v, want: %v", err, test.initErr)

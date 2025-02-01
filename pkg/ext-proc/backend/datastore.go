@@ -7,7 +7,6 @@ import (
 
 	"inference.networking.x-k8s.io/gateway-api-inference-extension/api/v1alpha1"
 	logutil "inference.networking.x-k8s.io/gateway-api-inference-extension/pkg/ext-proc/util/logging"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 )
 
@@ -15,7 +14,6 @@ func NewK8sDataStore(options ...K8sDatastoreOption) *K8sDatastore {
 	store := &K8sDatastore{
 		poolMu:          sync.RWMutex{},
 		InferenceModels: &sync.Map{},
-		pods:            &sync.Map{},
 	}
 	for _, opt := range options {
 		opt(store)
@@ -29,20 +27,9 @@ type K8sDatastore struct {
 	poolMu          sync.RWMutex
 	inferencePool   *v1alpha1.InferencePool
 	InferenceModels *sync.Map
-	pods            *sync.Map
 }
 
 type K8sDatastoreOption func(*K8sDatastore)
-
-// WithPods can be used in tests to override the pods.
-func WithPods(pods []*PodMetrics) K8sDatastoreOption {
-	return func(store *K8sDatastore) {
-		store.pods = &sync.Map{}
-		for _, pod := range pods {
-			store.pods.Store(pod.Pod, true)
-		}
-	}
-}
 
 func (ds *K8sDatastore) setInferencePool(pool *v1alpha1.InferencePool) {
 	ds.poolMu.Lock()
@@ -57,15 +44,6 @@ func (ds *K8sDatastore) getInferencePool() (*v1alpha1.InferencePool, error) {
 		return nil, errors.New("InferencePool is not initialized in data store")
 	}
 	return ds.inferencePool, nil
-}
-
-func (ds *K8sDatastore) GetPodIPs() []string {
-	var ips []string
-	ds.pods.Range(func(name, pod any) bool {
-		ips = append(ips, pod.(*corev1.Pod).Status.PodIP)
-		return true
-	})
-	return ips
 }
 
 func (s *K8sDatastore) FetchModelData(modelName string) (returnModel *v1alpha1.InferenceModel) {

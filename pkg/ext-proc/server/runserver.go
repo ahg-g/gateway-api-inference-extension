@@ -23,8 +23,6 @@ type ExtProcServerRunner struct {
 	TargetPodHeader        string
 	PoolName               string
 	PoolNamespace          string
-	ServiceName            string
-	Zone                   string
 	RefreshPodsInterval    time.Duration
 	RefreshMetricsInterval time.Duration
 	Scheme                 *runtime.Scheme
@@ -39,8 +37,6 @@ const (
 	DefaultTargetPodHeader        = "target-pod"          // default for --targetPodHeader
 	DefaultPoolName               = ""                    // required but no default
 	DefaultPoolNamespace          = "default"             // default for --poolNamespace
-	DefaultServiceName            = ""                    // required but no default
-	DefaultZone                   = ""                    // default for --zone
 	DefaultRefreshPodsInterval    = 10 * time.Second      // default for --refreshPodsInterval
 	DefaultRefreshMetricsInterval = 50 * time.Millisecond // default for --refreshMetricsInterval
 )
@@ -51,8 +47,6 @@ func NewDefaultExtProcServerRunner() *ExtProcServerRunner {
 		TargetPodHeader:        DefaultTargetPodHeader,
 		PoolName:               DefaultPoolName,
 		PoolNamespace:          DefaultPoolNamespace,
-		ServiceName:            DefaultServiceName,
-		Zone:                   DefaultZone,
 		RefreshPodsInterval:    DefaultRefreshPodsInterval,
 		RefreshMetricsInterval: DefaultRefreshMetricsInterval,
 		// Scheme, Config, and Datastore can be assigned later.
@@ -95,16 +89,6 @@ func (r *ExtProcServerRunner) Setup() {
 		klog.Fatalf("Failed setting up InferenceModelReconciler: %v", err)
 	}
 
-	if err := (&backend.EndpointSliceReconciler{
-		Datastore:   r.Datastore,
-		Scheme:      mgr.GetScheme(),
-		Client:      mgr.GetClient(),
-		Record:      mgr.GetEventRecorderFor("endpointslice"),
-		ServiceName: r.ServiceName,
-		Zone:        r.Zone,
-	}).SetupWithManager(mgr); err != nil {
-		klog.Fatalf("Failed setting up EndpointSliceReconciler: %v", err)
-	}
 }
 
 // Start starts the Envoy external processor server in a goroutine.
@@ -122,7 +106,7 @@ func (r *ExtProcServerRunner) Start(
 		klog.Infof("Ext-proc server listening on port: %d", r.GrpcPort)
 
 		// Initialize backend provider
-		pp := backend.NewProvider(podMetricsClient, podDatastore)
+		pp := backend.NewProvider(podMetricsClient, podDatastore, r.manager.GetClient())
 		if err := pp.Init(r.RefreshPodsInterval, r.RefreshMetricsInterval); err != nil {
 			klog.Fatalf("Failed to initialize backend provider: %v", err)
 		}

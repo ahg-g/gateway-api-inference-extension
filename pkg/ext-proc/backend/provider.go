@@ -3,33 +3,44 @@ package backend
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
 	"go.uber.org/multierr"
+	"inference.networking.x-k8s.io/gateway-api-inference-extension/api/v1alpha1"
 	logutil "inference.networking.x-k8s.io/gateway-api-inference-extension/pkg/ext-proc/util/logging"
+	corev1 "k8s.io/api/core/v1"
 	klog "k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
 	fetchMetricsTimeout = 5 * time.Second
+	poolNameKey         = "pool-name-key"
 )
 
-func NewProvider(pmc PodMetricsClient, datastore *K8sDatastore) *Provider {
+type podLister func() (map[string]string, error)
+
+func NewProvider(pmc PodMetricsClient, datastore *K8sDatastore, client client.Client) *Provider {
 	p := &Provider{
 		podMetrics: sync.Map{},
 		pmc:        pmc,
 		datastore:  datastore,
+		client:     client,
 	}
+	p.PodListerFunc = p.listPods
 	return p
 }
 
 // Provider provides backend pods and information such as metrics.
 type Provider struct {
 	// key: Pod, value: *PodMetrics
-	podMetrics sync.Map
-	pmc        PodMetricsClient
-	datastore  *K8sDatastore
+	podMetrics    sync.Map
+	pmc           PodMetricsClient
+	datastore     *K8sDatastore
+	client        client.Client
+	PodListerFunc podLister
 }
 
 type PodMetricsClient interface {
@@ -101,10 +112,26 @@ func (p *Provider) Init(refreshPodsInterval, refreshMetricsInterval time.Duratio
 // refreshPodsOnce lists pods and updates keys in the podMetrics map.
 // Note this function doesn't update the PodMetrics value, it's done separately.
 func (p *Provider) refreshPodsOnce() {
-	// merge new pods with cached ones.
-	// add new pod to the map
-	addNewPods := func(k, v any) bool {
+	listedPods, err := p.PodListerFunc()
+	if err != nil {
+		klog.Errorf("Failed to list pods: %v", err)
+		return
+	}
+	// remove pods that don't exist any more.
+	mergeFn := func(k, v any) bool {
 		pod := k.(Pod)
+		if _, ok := listedPods[pod.Name]; !ok {
+			p.podMetrics.Delete(pod)
+		}
+		return true
+	}
+	p.podMetrics.Range(mergeFn)
+	// add new pod to the map
+	for name, address := range listedPods {
+		pod := Pod{
+			Name:    name,
+			Address: address,
+		}
 		if _, ok := p.podMetrics.Load(pod); !ok {
 			new := &PodMetrics{
 				Pod: pod,
@@ -114,18 +141,7 @@ func (p *Provider) refreshPodsOnce() {
 			}
 			p.podMetrics.Store(pod, new)
 		}
-		return true
 	}
-	// remove pods that don't exist any more.
-	mergeFn := func(k, v any) bool {
-		pod := k.(Pod)
-		if _, ok := p.datastore.pods.Load(pod); !ok {
-			p.podMetrics.Delete(pod)
-		}
-		return true
-	}
-	p.podMetrics.Range(mergeFn)
-	p.datastore.pods.Range(addNewPods)
 }
 
 func (p *Provider) refreshMetricsOnce() error {
@@ -173,4 +189,43 @@ func (p *Provider) refreshMetricsOnce() error {
 		errs = multierr.Append(errs, err)
 	}
 	return errs
+}
+
+func (p *Provider) listPods() (map[string]string, error) {
+	pool, err := p.datastore.getInferencePool()
+	if err != nil {
+		return nil, err
+	}
+	ps := make(map[string]string)
+	var podList corev1.PodList
+	if err := p.client.List(context.Background(), &podList, client.InNamespace(pool.Namespace), toMatchingLabels(pool.Spec.Selector)); err != nil {
+		return nil, err
+	}
+	for i := range podList.Items {
+		pod := &podList.Items[i]
+		if podIsReady(pod) {
+			ps[pod.Name] = pod.Status.PodIP + ":" + strconv.Itoa(int(pool.Spec.TargetPortNumber))
+		}
+	}
+	return ps, nil
+}
+
+func toMatchingLabels(labels map[v1alpha1.LabelKey]v1alpha1.LabelValue) client.MatchingLabels {
+	outMap := make(client.MatchingLabels)
+	for k, v := range labels {
+		outMap[string(k)] = string(v)
+	}
+	return outMap
+}
+
+func podIsReady(pod *corev1.Pod) bool {
+	for _, condition := range pod.Status.Conditions {
+		if condition.Type == corev1.PodReady {
+			if condition.Status == corev1.ConditionTrue {
+				return true
+			}
+			break
+		}
+	}
+	return false
 }

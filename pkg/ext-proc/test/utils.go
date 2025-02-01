@@ -17,14 +17,16 @@ import (
 )
 
 func StartExtProc(port int, refreshPodsInterval, refreshMetricsInterval time.Duration, pods []*backend.PodMetrics, models map[string]*v1alpha1.InferenceModel) *grpc.Server {
-	ps := make(backend.PodSet)
 	pms := make(map[backend.Pod]*backend.PodMetrics)
-	for _, pod := range pods {
-		ps[pod.Pod] = true
-		pms[pod.Pod] = pod
-	}
 	pmc := &backend.FakePodMetricsClient{Res: pms}
-	pp := backend.NewProvider(pmc, backend.NewK8sDataStore(backend.WithPods(pods)))
+	pp := backend.NewProvider(pmc, backend.NewK8sDataStore(), nil)
+	pp.PodListerFunc = func() (map[string]string, error) {
+		m := make(map[string]string)
+		for _, pod := range pods {
+			m[pod.Pod.Name] = pod.Pod.Address
+		}
+		return m, nil
+	}
 	if err := pp.Init(refreshPodsInterval, refreshMetricsInterval); err != nil {
 		klog.Fatalf("failed to initialize: %v", err)
 	}

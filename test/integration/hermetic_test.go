@@ -333,7 +333,7 @@ func setUpHermeticServer(t *testing.T, pods []*backend.PodMetrics) (client extPr
 	}
 	pmc := &backend.FakePodMetricsClient{Res: pms}
 
-	server := serverRunner.Start(backend.NewK8sDataStore(backend.WithPods(pods)), pmc)
+	server := serverRunner.Start(backend.NewK8sDataStore(), pmc)
 	if err != nil {
 		log.Fatalf("Ext-proc failed with the err: %v", err)
 	}
