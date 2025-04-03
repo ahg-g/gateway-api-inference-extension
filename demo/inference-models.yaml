@@ -1,0 +1,250 @@
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: prod
+  namespace: default
+spec:
+  modelName: prod
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+  targetModels:
+  - name: tweet-summary-1
+  - name: tweet-summary-2
+  - name: tweet-summary-3
+  - name: tweet-summary-4
+  - name: tweet-summary-5
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: dev
+  namespace: default
+spec:
+  modelName: dev
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+  targetModels:
+  - name: tweet-summary-6
+  - name: tweet-summary-7
+  - name: tweet-summary-8
+  - name: tweet-summary-9
+  - name: tweet-summary-10
+  - name: tweet-summary-11
+  - name: tweet-summary-12
+  - name: tweet-summary-13
+  - name: tweet-summary-14
+  - name: tweet-summary-15
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-1
+  namespace: default
+spec:
+  modelName: tweet-summary-1
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-2
+  namespace: default
+spec:
+  modelName: tweet-summary-2
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-3
+  namespace: default
+spec:
+  modelName: tweet-summary-3
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-4
+  namespace: default
+spec:
+  modelName: tweet-summary-4
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-5
+  namespace: default
+spec:
+  modelName: tweet-summary-5
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-6
+  namespace: default
+spec:
+  modelName: tweet-summary-6
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-7
+  namespace: default
+spec:
+  modelName: tweet-summary-7
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-8
+  namespace: default
+spec:
+  modelName: tweet-summary-8
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-9
+  namespace: default
+spec:
+  modelName: tweet-summary-9
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-10
+  namespace: default
+spec:
+  modelName: tweet-summary-10
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-11
+  namespace: default
+spec:
+  modelName: tweet-summary-11
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-12
+  namespace: default
+spec:
+  modelName: tweet-summary-12
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-13
+  namespace: default
+spec:
+  modelName: tweet-summary-13
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-14
+  namespace: default
+spec:
+  modelName: tweet-summary-14
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: tweet-summary-15
+  namespace: default
+spec:
+  modelName: tweet-summary-15
+  criticality: Critical  
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: base
+  namespace: default
+spec:
+  modelName: meta-llama/Llama-2-7b-hf
+  criticality: Critical
+  poolRef:
+    group: inference.networking.x-k8s.io
+    kind: InferencePool
+    name: vllm-llama2-7b
