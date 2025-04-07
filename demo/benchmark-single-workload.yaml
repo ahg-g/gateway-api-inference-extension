@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: benchmark-single-workload
+  namespace: default
+  labels:
+    name: benchmark-single-workload
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: benchmark-single-workload
+  template:
+    metadata:
+      labels:
+        name: benchmark-single-workload
+    spec:
+      containers:
+        - name: benchmark
+          image: us-central1-docker.pkg.dev/ahg-gke-dev/test/inference-benchmark:latest
+          imagePullPolicy: Always
+          command: ["bash", "-c", "./latency_throughput_curve.sh"]
+          env:
+            - name: TOKENIZER
+              value: "meta-llama/Llama-2-7b-hf"
+            - name: BACKEND
+              value: "vllm"
+            - name: IP
+              value: "35.206.87.30"
+              #value: 34.55.227.220
+            - name: PORT
+              value: "80" 
+            - name: INPUT_LENGTH
+              value: "1024"
+            - name: OUTPUT_LENGTH
+              value: "1024"
+            - name: REQUEST_RATES
+              value: "175,180,185,190"
+            - name: BENCHMARK_TIME_SECONDS
+              value: "500"
+            - name: FILE_PREFIX
+              value: "single-workload"
+            - name: MODELS
+              value: "meta-llama/Llama-2-7b-hf"
+            - name: SAVE_AGGREGATED_RESULT
+              value: "true"
+            - name: PROMPT_DATASET_FILE
+              value: "ShareGPT_V3_unfiltered_cleaned_split.json"
+            - name: STREAM_REQUEST
+              value: "false"
+            - name: SCRAPE_SERVER_METRICS
+              value: "false"
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hf-token
+                  key: token
