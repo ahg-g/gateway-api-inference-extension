@@ -8,7 +8,10 @@ spec:
   parentRefs:
   - group: gateway.networking.k8s.io
     kind: Gateway
-    name: {{ include "gateway-api-inference-extension.gateway.fullname" . }}
+    name: {{ include "gateway.fullname" . }}
+    {{- if .Values.experimentalHttpRoute.inferenceGatewayNamespace }}
+    namespace: {{ .Values.experimentalHttpRoute.inferenceGatewayNamespace }}
+    {{- end }}
   rules:
   - backendRefs:
     - group: inference.networking.k8s.io
@@ -18,11 +21,18 @@ spec:
     - path:
         type: PathPrefix
         value: /
-      {{- if .Values.experimentalHttpRoute.baseModel }}
+      {{- if or .Values.experimentalHttpRoute.baseModel .Values.experimentalHttpRoute.guideName }}
       headers:
+      {{- if .Values.experimentalHttpRoute.baseModel }}
         - type: Exact
-          name: X-Gateway-Base-Model-Name
+          name: X-gateway-base-model-name
           value: {{ .Values.experimentalHttpRoute.baseModel }}
+      {{- end }}
+      {{- if .Values.experimentalHttpRoute.guideName }}
+        - type: Exact
+          name: x-llm-d-guide-name
+          value: {{ .Values.experimentalHttpRoute.guideName }}
+      {{- end }}
       {{- end }}
     {{- if ne (lower .Values.provider.name) "gke" }}
     timeouts:
