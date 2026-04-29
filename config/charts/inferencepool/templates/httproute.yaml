@@ -26,7 +26,7 @@ spec:
       {{- $headerMatches := deepCopy (.Values.experimentalHttpRoute.headerMatches | default dict) }}
       {{- if .Values.experimentalHttpRoute.baseModel }}
         - type: Exact
-          name: X-gateway-base-model-name
+          name: X-Gateway-Base-Model-Name
           value: {{ .Values.experimentalHttpRoute.baseModel }}
       {{- end }}
       {{- range $key, $value := $headerMatches }}
