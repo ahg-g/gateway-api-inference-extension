@@ -8,7 +8,7 @@ spec:
   parentRefs:
   - group: gateway.networking.k8s.io
     kind: Gateway
-    name: {{ include "gateway.fullname" . }}
+    name: {{ include "inferencepool.gateway.fullname" . }}
     {{- if .Values.experimentalHttpRoute.inferenceGatewayNamespace }}
     namespace: {{ .Values.experimentalHttpRoute.inferenceGatewayNamespace }}
     {{- end }}
@@ -21,17 +21,18 @@ spec:
     - path:
         type: PathPrefix
         value: /
-      {{- if or .Values.experimentalHttpRoute.baseModel .Values.experimentalHttpRoute.guideName }}
+      {{- if or .Values.experimentalHttpRoute.baseModel .Values.experimentalHttpRoute.headerMatches }}
       headers:
+      {{- $headerMatches := deepCopy (.Values.experimentalHttpRoute.headerMatches | default dict) }}
       {{- if .Values.experimentalHttpRoute.baseModel }}
         - type: Exact
           name: X-gateway-base-model-name
           value: {{ .Values.experimentalHttpRoute.baseModel }}
       {{- end }}
-      {{- if .Values.experimentalHttpRoute.guideName }}
+      {{- range $key, $value := $headerMatches }}
         - type: Exact
-          name: x-llm-d-guide-name
-          value: {{ .Values.experimentalHttpRoute.guideName }}
+          name: {{ $key }}
+          value: {{ $value }}
       {{- end }}
       {{- end }}
     {{- if ne (lower .Values.provider.name) "gke" }}
